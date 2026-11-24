@@ -524,6 +524,9 @@ function actionFor(p: SnapshotProtocol, capital: number, chain: string): string 
   if (c.includes('rwa')) {
     return `Mint $${capital} of ${name}'s tokenized yield asset on ${chain} through its own minting page, and hold the receipt tokens`;
   }
+  if (c.includes('restak')) {
+    return `Restake $${capital} of the chain's staking asset through ${name} on ${chain} into one operator, and keep the liquid receipt token in the same wallet`;
+  }
   if (c.includes('stak')) {
     return `Stake $${capital} of the chain's staking asset through ${name} on ${chain}, and keep the receipt token in the same wallet`;
   }
@@ -563,6 +566,25 @@ function actionFor(p: SnapshotProtocol, capital: number, chain: string): string 
   return `Deposit $${capital} of USDC into ${name} on ${chain}, and keep the position open through the window`;
 }
 
+/** The weekly on-chain action depends on what the category actually does. */
+function weeklyActionFor(p: SnapshotProtocol): string {
+  const c = (p.category ?? '').toLowerCase();
+  if (c.includes('dex') || c.includes('liquidity')) return 'claim LP fees or rebalance the price range';
+  if (c.includes('lend') || c.includes('cdp') || c.includes('collateral')) return 'top up collateral or claim supplied interest';
+  if (c.includes('restak')) return 'check the operator and restake the receipt token';
+  if (c.includes('rwa')) return 'check the mint receipt and refresh the allowlist';
+  if (c.includes('stak')) return 'claim staking rewards and restake them';
+  if (c.includes('yield') || c.includes('farm')) return 'harvest rewards and compound the vault shares';
+  return 'make one real on-chain action — a deposit, a claim or a vote';
+}
+
+/** 63 becomes 63rd, not 63th. */
+function ordinal(n: number): string {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  return `${n}${({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] ?? 'th'}`;
+}
+
 /** A protocol's farm plan: seven steps, each an action with a cost and a time, built from its record. */
 export function farmPlan(p: SnapshotProtocol, age: number | null): { steps: FarmStep[]; capital: number; gas: number; days: number } {
   const chain = chainOf(p);
@@ -573,7 +595,7 @@ export function farmPlan(p: SnapshotProtocol, age: number | null): { steps: Farm
   const ageLabel = age === null ? 'an unlisted age' : age < 180 ? `${age} days on record` : `${(age / 365).toFixed(1)} years on record`;
   const steps: FarmStep[] = [
     {
-      text: `Open a fresh wallet for this position, move $${capital} of stablecoin into it plus about $${gas} for gas, and bookmark ${p.name}'s own app page from its documentation`,
+      text: `${p.category?.toLowerCase().includes('rwa') ? `Complete ${p.name}'s identity check (one business day), then ` : ''}Open a fresh wallet for this position, move $${capital} of stablecoin into it plus about $${gas} for gas, and bookmark ${p.name}'s own app page from its documentation`,
       cost: `$${capital} of capital plus $${gas} of gas`,
       time: '15 minutes to set up',
     },
@@ -583,7 +605,7 @@ export function farmPlan(p: SnapshotProtocol, age: number | null): { steps: Farm
       time: '15 minutes for the first transaction',
     },
     {
-      text: `Once every 7 days, make one real action inside ${p.name} - a deposit, a claim or a vote - so the position shows activity in consecutive weeks, not one day`,
+      text: `Once every 7 days, ${weeklyActionFor(p)} inside ${p.name}, so the position shows activity in consecutive weeks, not one day`,
       cost: `about $${gas} of gas a week`,
       time: '10 minutes a week',
     },
@@ -603,7 +625,7 @@ export function farmPlan(p: SnapshotProtocol, age: number | null): { steps: Farm
       time: '10 minutes at claim time',
     },
     {
-      text: `Withdraw on the ${hold + 3}th day, then log the entry date, exit date, fees paid and net result so the same position can be repeated or dropped`,
+      text: `Withdraw on the ${ordinal(hold + 3)} day, then log the entry date, exit date, fees paid and net result so the same position can be repeated or dropped`,
       cost: `about $${gas} of gas to exit`,
       time: '20 minutes to close and log',
     },

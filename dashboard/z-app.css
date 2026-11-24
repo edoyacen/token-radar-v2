@@ -269,3 +269,8 @@ dialog.detail::backdrop { background: rgba(4, 7, 11, 0.62); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+.farmcard { margin-top: 2px; padding: 14px; border: 1px solid rgba(52,224,161,0.30); border-radius: var(--r-m); background: linear-gradient(135deg, rgba(52,224,161,0.10), rgba(108,156,255,0.04)); }
+.farmcard-k { font: 650 10px/1.4 var(--sans); letter-spacing: 0.12em; color: var(--mint); text-transform: uppercase; }
+.farmcard-big { margin: 7px 0 4px; font: 700 23px/1.16 var(--mono); letter-spacing: -0.02em; color: var(--ink); }
+.farmcard-sub { font: 500 11.5px/1.45 var(--mono); color: var(--mut); }

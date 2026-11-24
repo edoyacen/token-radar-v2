@@ -339,6 +339,14 @@
       el('div', { class: 'formula' },
         'implied = round( TVL × base × growth × maturity × category × chain × size )'
       ),
+      (function () {
+        var demo = D.rows[0];
+        return el('div', { class: 'farmcard' },
+          el('div', { class: 'farmcard-k', text: 'FARM PLAN · ON EVERY ROW' }),
+          el('div', { class: 'farmcard-big', text: '$' + demo.farm.capital_usd + ' ' + (demo.category || 'DEPOSIT').toUpperCase() + ' · ' + demo.farm.days + ' DAYS' }),
+          el('div', { class: 'farmcard-sub', text: 'gas $' + demo.farm.gas_usd + '/tx · ' + demo.farm_steps.length + ' costed steps · ' + chainLabel(demo) })
+        );
+      })(),
       factorRows(),
       el('div', { class: 'subhead' }, el('h3', { text: 'Category multipliers' }), el('span', { text: 'mint = fitted on live comparables' })),
       el('div', { class: 'chips' }, cats.map(function (f) {
